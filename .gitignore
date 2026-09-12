@@ -1,5 +1,41 @@
-node_modules/
-.next/
-dist/
-build/
+.venv/
+venv/
+ENV/
+backend/.venv/
+
+# Кэш uv
+backend/.uv/
+
+# Артефакты Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.sqlite3
+*.db
+.pytest_cache/
+.mypy_cache/
+
+# Окружения и переменные
+.env
+.env.*
+.env.local
+
+# Логи и сборка
 *.log
+build/
+dist/
+*.egg-info/
+.next/
+coverage/
+node_modules/
+
+# IDE и система
+.vscode/
+.idea/
+.DS_Store
+*.swp
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -29,7 +29,6 @@
       }
     </style>
     <script>
-      // 在 React 加载前立即设置主题，避免闪烁
       (function () {
         const isInIframe = window.self !== window.top;
 
@@ -40,7 +39,6 @@
         }
 
         if (isInIframe) {
-          // 监听父窗口主动推送的主题消息
           window.addEventListener("message", function (event) {
             if (event.data && typeof event.data.theme === "string") {
               const theme = event.data.theme;
@@ -50,7 +48,6 @@
             }
           });
         } else {
-          // 非 iframe 环境，使用默认 light 主题
           applyThemeToDOM("light");
         }
       })();
