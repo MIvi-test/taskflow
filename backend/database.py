@@ -1,33 +1,44 @@
 """
-Database configuration for SQLAlchemy 2.0
+Async Database configuration for SQLAlchemy 2.0 + PostgreSQL (psycopg 3)
 """
+import os
+from collections.abc import AsyncGenerator
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.orm import DeclarativeBase
 
-# SQLite database (можно заменить на PostgreSQL/MySQL)
-DATABASE_URL = "sqlite:///./taskflow.db"
+DEFAULT_DB_URL = "postgresql+psycopg://user:password@localhost:5432/taskflow"
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DB_URL)
 
-# Для PostgreSQL:
-# DATABASE_URL = "postgresql://user:password@localhost:5432/taskflow"
-
-engine = create_engine(
+engine = create_async_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Только для SQLite
-    echo=False,  # Установить True для отладки SQL запросов
+    pool_pre_ping=True,
+    pool_size=5,
+    max_overflow=10,
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    autoflush=False, 
+    expire_on_commit=False,
+    class_=AsyncSession,
+)
 
 
 class Base(DeclarativeBase):
     pass
 
 
-def get_db():
-    """Dependency для получения сессии базы данных"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """Асинхронная зависимость для получения сессии базы данных."""
+    async with AsyncSessionLocal() as session:
+        yield session
+
+
+async def close_database() -> None:
+    """Закрыть пул соединений при остановке приложения."""
+    await engine.dispose()

@@ -12,13 +12,10 @@ COPY . .
 
 RUN npm run build
 
-#STAGE 2: deps
-FROM node:22-slim AS deps
+# STAGE 2: reverse proxy + react files
+FROM caddy:2.11.4-alpine AS caddy
 
-WORKDIR /app/
-
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+COPY --from=builder /app/dist /app
 
 ### STAGE 3: Production Image
 FROM python:3.14-slim AS production
@@ -34,9 +31,6 @@ COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv sync --frozen --no-install-project --no-dev
 
 COPY ./backend/ ./
-
-COPY --from=deps /app/node_modules /app/frontend/node_modules
-COPY --from=builder /app/dist /app/frontend/dist
 
 RUN groupadd -r appuser && useradd -r -g appuser appuser -d /app -s /sbin/nologin
 RUN chown -R appuser:appuser /app

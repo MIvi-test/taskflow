@@ -29,7 +29,7 @@
     }
 
     handle {
-        root * /usr/share/caddy
+        root * /app
         try_files {path} /index.html
         file_server
     }
