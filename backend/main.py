@@ -1,23 +1,39 @@
 """
 TaskFlow Backend - FastAPI + SQLAlchemy
 ========================================
-Пет-проект для демонстрации фулл-стек разработки.
-
-Запуск:
-    uvicorn main:app --reload --port 8000
-
 Документация API:
     http://localhost:8000/docs
 """
 
+import os
+from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 
-from database import engine, Base
+from database import Base, close_database, engine
 from routers import tasks, projects
 
-# Создание таблиц в базе данных
-Base.metadata.create_all(bind=engine)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Инициализация и корректное завершение async-базы данных."""
+    async with engine.begin() as connection:
+        # Gunicorn запускает несколько workers одновременно. Без блокировки
+        # они могут параллельно создать один и тот же PostgreSQL ENUM.
+        await connection.execute(text("SELECT pg_advisory_lock(824731)"))
+        try:
+            await connection.run_sync(Base.metadata.create_all)
+        finally:
+            await connection.execute(text("SELECT pg_advisory_unlock(824731)"))
+    try:
+        yield
+    finally:
+        await close_database()
+
 
 app = FastAPI(
     title="TaskFlow API",
@@ -25,6 +41,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # CORS middleware для фронтенда
