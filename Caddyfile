@@ -1,0 +1,36 @@
+:80 {
+    log {
+        output stdout
+    }
+
+    encode gzip
+
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    handle /health {
+        respond "OK" 200
+    }
+
+    @api {
+        path /api/*
+        path /docs
+        path /openapi.json
+    }
+
+    handle @api {
+        reverse_proxy fastapi:8000 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    handle {
+        root * /usr/share/caddy
+        try_files {path} /index.html
+        file_server
+    }
+}

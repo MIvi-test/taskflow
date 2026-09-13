@@ -1,17 +1,16 @@
 """
 TaskFlow Backend - FastAPI + SQLAlchemy
 ========================================
-Пет-проект для демонстрации фулл-стек разработки.
-
-Запуск:
-    uvicorn main:app --reload --port 8000
-
 Документация API:
     http://localhost:8000/docs
 """
 
+import os
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from database import engine, Base
 from routers import tasks, projects
