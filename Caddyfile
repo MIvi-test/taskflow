@@ -1,36 +1,36 @@
 :80 {
-    log {
-        output stdout
-    }
+	log {
+		output stdout
+	}
 
-    encode gzip
+	encode gzip
 
-    header {
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
-        Referrer-Policy "strict-origin-when-cross-origin"
-    }
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
 
-    handle /health {
-        respond "OK" 200
-    }
+	handle /health {
+		respond "OK" 200
+	}
 
-    @api {
-        path /api/*
-        path /docs
-        path /openapi.json
-    }
+	@api {
+		path /api/*
+		path /docs
+		path /openapi.json
+	}
 
-    handle @api {
-        reverse_proxy fastapi:8000 {
-            header_up X-Real-IP {remote_host}
-            header_up X-Forwarded-Proto {scheme}
-        }
-    }
+	handle @api {
+		reverse_proxy fastapi:8000 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
 
-    handle {
-        root * /app
-        try_files {path} /index.html
-        file_server
-    }
+	handle {
+		root * /app
+		try_files {path} /index.html
+		file_server
+	}
 }
