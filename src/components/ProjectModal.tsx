@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Project } from '../types';
+import { ProjectDraft } from '../types';
 
 interface ProjectModalProps {
-  onSave: (data: Omit<Project, 'id' | 'tasks_count' | 'created_at'>) => void;
+  onSave: (data: ProjectDraft) => void;
   onClose: () => void;
 }
 
@@ -29,11 +29,11 @@ export default function ProjectModal({ onSave, onClose }: ProjectModalProps) {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Новый проект</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Новый проект</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 transition-colors">
             <i className="fas fa-times"></i>
           </button>
         </div>
@@ -42,32 +42,32 @@ export default function ProjectModal({ onSave, onClose }: ProjectModalProps) {
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Название проекта</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Название проекта</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Например: Мой стартап"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               autoFocus
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Описание</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Описание</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Краткое описание проекта..."
               rows={2}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
             />
           </div>
 
           {/* Color */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Цвет</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Цвет</label>
             <div className="flex flex-wrap gap-2">
               {colors.map(c => (
                 <button
@@ -75,7 +75,7 @@ export default function ProjectModal({ onSave, onClose }: ProjectModalProps) {
                   type="button"
                   onClick={() => setColor(c)}
                   className={`w-8 h-8 rounded-full transition-transform ${
-                    color === c ? 'ring-2 ring-offset-2 ring-indigo-500 scale-110' : 'hover:scale-110'
+                    color === c ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-indigo-500 scale-110' : 'hover:scale-110'
                   }`}
                   style={{ backgroundColor: c }}
                 />
@@ -88,7 +88,7 @@ export default function ProjectModal({ onSave, onClose }: ProjectModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
             >
               Отмена
             </button>

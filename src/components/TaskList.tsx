@@ -28,9 +28,9 @@ export default function TaskList({ tasks, onEditTask, onUpdateTask, onDeleteTask
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
       {/* Table Header */}
-      <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+      <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
         <div className="col-span-1"></div>
         <div className="col-span-4">Задача</div>
         <div className="col-span-2">Статус</div>
@@ -40,11 +40,11 @@ export default function TaskList({ tasks, onEditTask, onUpdateTask, onDeleteTask
       </div>
 
       {/* Tasks */}
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-gray-100 dark:divide-slate-800">
         {tasks.map(task => (
           <div
             key={task.id}
-            className="grid grid-cols-12 gap-4 px-5 py-4 items-center hover:bg-gray-50 transition-colors group cursor-pointer"
+            className="grid grid-cols-12 gap-4 px-5 py-4 items-center hover:bg-gray-50 dark:hover:bg-slate-800/70 transition-colors group cursor-pointer"
             onClick={() => onEditTask(task)}
           >
             {/* Checkbox */}
@@ -56,7 +56,7 @@ export default function TaskList({ tasks, onEditTask, onUpdateTask, onDeleteTask
                     ? 'bg-green-500 border-green-500 text-white'
                     : task.status === 'in_progress'
                     ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 hover:border-indigo-500'
+                    : 'border-gray-300 dark:border-slate-600 hover:border-indigo-500'
                 }`}
               >
                 {task.status === 'done' && <i className="fas fa-check text-xs"></i>}
@@ -66,10 +66,10 @@ export default function TaskList({ tasks, onEditTask, onUpdateTask, onDeleteTask
 
             {/* Title & Description */}
             <div className="col-span-4">
-              <h3 className={`font-medium text-sm ${task.status === 'done' ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+                <h3 className={`font-medium text-sm ${task.status === 'done' ? 'line-through text-gray-400 dark:text-slate-500' : 'text-gray-900 dark:text-slate-100'}`}>
                 {task.title}
               </h3>
-              <p className="text-xs text-gray-500 mt-0.5 truncate">{task.description}</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 truncate">{task.description}</p>
             </div>
 
             {/* Status */}
@@ -88,7 +88,7 @@ export default function TaskList({ tasks, onEditTask, onUpdateTask, onDeleteTask
             </div>
 
             {/* Date */}
-            <div className="col-span-2 text-xs text-gray-500">
+            <div className="col-span-2 text-xs text-gray-500 dark:text-slate-400">
               {new Date(task.updated_at).toLocaleDateString('ru-RU', {
                 day: 'numeric',
                 month: 'short',
@@ -100,7 +100,7 @@ export default function TaskList({ tasks, onEditTask, onUpdateTask, onDeleteTask
             <div className="col-span-1 flex justify-end">
               <button
                 onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }}
-                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-1"
+                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all p-1"
               >
                 <i className="fas fa-trash-alt text-xs"></i>
               </button>
@@ -110,7 +110,7 @@ export default function TaskList({ tasks, onEditTask, onUpdateTask, onDeleteTask
       </div>
 
       {tasks.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-gray-400 dark:text-slate-500">
           <i className="fas fa-search text-3xl mb-3 block"></i>
           <p className="text-sm">Задачи не найдены</p>
         </div>

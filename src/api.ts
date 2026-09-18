@@ -1,4 +1,5 @@
-import { Task, Project } from './types';
+import { Project, ProjectDraft, Task, TaskDraft } from './types';
+import { observabilityProject, roadmapTasks } from './data/roadmap';
 
 // API base URL - change this when running FastAPI backend
 const API_BASE = 'http://localhost:8000/api';
@@ -9,7 +10,10 @@ const API_BASE = 'http://localhost:8000/api';
 const STORAGE_KEYS = {
   tasks: 'taskflow_tasks',
   projects: 'taskflow_projects',
+  roadmapVersion: 'taskflow_roadmap_version',
 };
+
+const ROADMAP_VERSION = 1;
 
 // Helper to get data from localStorage
 function getFromStorage<T>(key: string, defaultValue: T[]): T[] {
@@ -24,98 +28,40 @@ function saveToStorage<T>(key: string, data: T[]): void {
   localStorage.setItem(key, JSON.stringify(data));
 }
 
-// Default data
-const defaultTasks: Task[] = [
-  {
-    id: 1,
-    title: 'Настроить базу данных',
-    description: 'Инициализировать SQLAlchemy модели и создать миграции через Alembic',
-    status: 'done',
-    priority: 'high',
-    created_at: '2026-01-15T10:00:00Z',
-    updated_at: '2026-01-15T14:00:00Z',
-  },
-  {
-    id: 2,
-    title: 'Создать REST API endpoints',
-    description: 'Реализовать CRUD операции для задач и проектов через FastAPI',
-    status: 'in_progress',
-    priority: 'high',
-    created_at: '2026-01-16T09:00:00Z',
-    updated_at: '2026-01-17T11:00:00Z',
-  },
-  {
-    id: 3,
-    title: 'Добавить авторизацию',
-    description: 'Реализовать JWT токены и middleware для защиты endpoints',
-    status: 'todo',
-    priority: 'medium',
-    created_at: '2026-01-17T08:00:00Z',
-    updated_at: '2026-01-17T08:00:00Z',
-  },
-  {
-    id: 4,
-    title: 'Сверстать фронтенд',
-    description: 'Создать React компоненты с Tailwind CSS для управления задачами',
-    status: 'in_progress',
-    priority: 'medium',
-    created_at: '2026-01-18T10:00:00Z',
-    updated_at: '2026-01-19T15:00:00Z',
-  },
-  {
-    id: 5,
-    title: 'Написать тесты',
-    description: 'Покрыть API endpoints unit и integration тестами с pytest',
-    status: 'todo',
-    priority: 'low',
-    created_at: '2026-01-19T12:00:00Z',
-    updated_at: '2026-01-19T12:00:00Z',
-  },
-  {
-    id: 6,
-    title: 'Деплой на сервер',
-    description: 'Настроить Docker контейнеры и развернуть приложение',
-    status: 'todo',
-    priority: 'low',
-    created_at: '2026-01-20T09:00:00Z',
-    updated_at: '2026-01-20T09:00:00Z',
-  },
-];
+const defaultTasks = roadmapTasks;
+const defaultProjects = [observabilityProject];
 
-const defaultProjects: Project[] = [
-  {
-    id: 1,
-    name: 'TaskFlow Backend',
-    description: 'FastAPI + SQLAlchemy серверная часть',
-    color: '#6366f1',
-    tasks_count: 3,
-    created_at: '2026-01-15T10:00:00Z',
-  },
-  {
-    id: 2,
-    name: 'TaskFlow Frontend',
-    description: 'React + Tailwind клиентская часть',
-    color: '#06b6d4',
-    tasks_count: 2,
-    created_at: '2026-01-18T10:00:00Z',
-  },
-  {
-    id: 3,
-    name: 'DevOps',
-    description: 'Деплой и инфраструктура',
-    color: '#10b981',
-    tasks_count: 1,
-    created_at: '2026-01-20T09:00:00Z',
-  },
-];
+function mergeSeedData<T extends { seed_key?: string }>(items: T[], seeds: T[]): T[] {
+  const existingSeedKeys = new Set(
+    items.flatMap(item => item.seed_key ? [item.seed_key] : []),
+  );
+  return [...items, ...seeds.filter(seed => {
+    const seedKey = seed.seed_key;
+    return seedKey !== undefined && !existingSeedKeys.has(seedKey);
+  })];
+}
 
 // Initialize storage with defaults if empty
 export function initializeStorage(): void {
-  if (!localStorage.getItem(STORAGE_KEYS.tasks)) {
+  const hasTasks = Boolean(localStorage.getItem(STORAGE_KEYS.tasks));
+  const hasProjects = Boolean(localStorage.getItem(STORAGE_KEYS.projects));
+
+  if (!hasTasks) {
     saveToStorage(STORAGE_KEYS.tasks, defaultTasks);
   }
-  if (!localStorage.getItem(STORAGE_KEYS.projects)) {
+  if (!hasProjects) {
     saveToStorage(STORAGE_KEYS.projects, defaultProjects);
+  }
+
+  const savedVersion = Number(localStorage.getItem(STORAGE_KEYS.roadmapVersion) ?? 0);
+  if (savedVersion < ROADMAP_VERSION) {
+    // У пользователей со старой демо-доской сохраняем личные задачи и
+    // добавляем только отсутствующие roadmap-задачи по стабильному seed_key.
+    const tasks = getFromStorage<Task>(STORAGE_KEYS.tasks, []);
+    const projects = getFromStorage<Project>(STORAGE_KEYS.projects, []);
+    saveToStorage(STORAGE_KEYS.tasks, mergeSeedData(tasks, roadmapTasks));
+    saveToStorage(STORAGE_KEYS.projects, mergeSeedData(projects, defaultProjects));
+    localStorage.setItem(STORAGE_KEYS.roadmapVersion, String(ROADMAP_VERSION));
   }
 }
 
@@ -124,7 +70,7 @@ export async function getTasks(): Promise<Task[]> {
   return getFromStorage<Task>(STORAGE_KEYS.tasks, defaultTasks);
 }
 
-export async function createTask(task: Omit<Task, 'id' | 'created_at' | 'updated_at'>): Promise<Task> {
+export async function createTask(task: TaskDraft): Promise<Task> {
   const tasks = getFromStorage<Task>(STORAGE_KEYS.tasks, []);
   const newTask: Task = {
     ...task,
@@ -159,7 +105,7 @@ export async function getProjects(): Promise<Project[]> {
   return getFromStorage<Project>(STORAGE_KEYS.projects, defaultProjects);
 }
 
-export async function createProject(project: Omit<Project, 'id' | 'tasks_count' | 'created_at'>): Promise<Project> {
+export async function createProject(project: ProjectDraft): Promise<Project> {
   const projects = getFromStorage<Project>(STORAGE_KEYS.projects, []);
   const newProject: Project = {
     ...project,

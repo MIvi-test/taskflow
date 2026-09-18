@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Task, Project, ViewMode, FilterStatus } from './types';
+import { Task, Project, ViewMode, FilterStatus, TaskDraft, ProjectDraft } from './types';
 import {
   initializeStorage,
   getTasks,
@@ -17,8 +17,10 @@ import TaskModal from './components/TaskModal';
 import ProjectModal from './components/ProjectModal';
 import Header from './components/Header';
 import BackendInfo from './components/BackendInfo';
+import { useTheme } from './hooks/useTheme';
 
 export default function App() {
+  const { theme, setTheme } = useTheme();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('board');
@@ -35,14 +37,19 @@ export default function App() {
     initializeStorage();
     const [tasksData, projectsData] = await Promise.all([getTasks(), getProjects()]);
     setTasks(tasksData);
-    setProjects(projectsData);
+    // В localStorage число задач могло устареть. Считаем его от фактических
+    // задач, чтобы Sidebar всегда показывал корректное значение.
+    setProjects(projectsData.map(project => ({
+      ...project,
+      tasks_count: tasksData.filter(task => task.project_id === project.id).length,
+    })));
   }, []);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const handleCreateTask = async (taskData: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
+  const handleCreateTask = async (taskData: TaskDraft) => {
     await createTask(taskData);
     await loadData();
     setShowTaskModal(false);
@@ -63,7 +70,7 @@ export default function App() {
     setShowTaskModal(true);
   };
 
-  const handleCreateProject = async (projectData: Omit<Project, 'id' | 'tasks_count' | 'created_at'>) => {
+  const handleCreateProject = async (projectData: ProjectDraft) => {
     await createProject(projectData);
     await loadData();
     setShowProjectModal(false);
@@ -76,6 +83,7 @@ export default function App() {
   };
 
   const filteredTasks = tasks.filter(task => {
+    if (selectedProject !== null && task.project_id !== selectedProject) return false;
     if (filterStatus !== 'all' && task.status !== filterStatus) return false;
     if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !task.description.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -90,7 +98,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 text-gray-900 dark:bg-slate-950 dark:text-slate-100 overflow-hidden">
       {/* Sidebar */}
       <Sidebar
         projects={projects}
@@ -115,6 +123,8 @@ export default function App() {
           onNewTask={() => { setEditingTask(null); setShowTaskModal(true); }}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           onShowBackendInfo={() => setShowBackendInfo(true)}
+          theme={theme}
+          onThemeToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')}
         />
 
         <main className="flex-1 overflow-auto p-6">
@@ -140,6 +150,7 @@ export default function App() {
       {showTaskModal && (
         <TaskModal
           task={editingTask}
+          projects={projects}
           onSave={editingTask
             ? (data: Partial<Task>) => handleUpdateTask(editingTask.id, data).then(() => setShowTaskModal(false))
             : handleCreateTask

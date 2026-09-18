@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -43,11 +43,16 @@
               const theme = event.data.theme;
               if (theme === "light" || theme === "dark") {
                 applyThemeToDOM(theme);
+                window.dispatchEvent(new CustomEvent("taskflow-theme-change", { detail: theme }));
               }
             }
           });
         } else {
-          applyThemeToDOM("light");
+          const savedTheme = localStorage.getItem("taskflow_theme");
+          const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+          applyThemeToDOM(savedTheme === "light" || savedTheme === "dark" ? savedTheme : systemTheme);
         }
       })();
     </script>
