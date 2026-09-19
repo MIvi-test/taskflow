@@ -2,9 +2,9 @@
 
 TaskFlow — учебное full-stack приложение для управления задачами и изучения эксплуатации сервиса. В нём есть React-интерфейс, FastAPI REST API, PostgreSQL, production-подобный Docker Compose и базовый мониторинг Prometheus.
 
-## Текущее состояние: v1.2
+## Текущее состояние: v1.3
 
-Интерфейс поддерживает светлую и тёмную темы, показывает roadmap эксплуатации и хранит данные доски в `localStorage` браузера. FastAPI с PostgreSQL уже реализованы как отдельный REST API, но React-клиент пока не использует API для CRUD-операций.
+Интерфейс поддерживает светлую и тёмную темы, показывает roadmap эксплуатации и хранит данные доски в `localStorage` браузера. FastAPI с PostgreSQL реализованы как отдельный REST API, но React-клиент пока не использует API для CRUD-операций. Для наблюдаемости добавлены Prometheus, node_exporter и Grafana с автоматически подключаемым datasource Prometheus.
 
 ## Архитектура
 
@@ -16,6 +16,9 @@ Browser
 Prometheus
   ├── fastapi:8000/metrics
   └── node-exporter:9100/metrics
+
+Grafana
+  └── Prometheus datasource → Prometheus
 ```
 
 ## Стек
@@ -24,7 +27,7 @@ Prometheus
 - Backend: FastAPI, SQLAlchemy 2.0, psycopg 3, Gunicorn
 - Database: PostgreSQL 16
 - Reverse proxy: Caddy
-- Monitoring: Prometheus и node_exporter
+- Monitoring: Prometheus, node_exporter и Grafana
 - Containerization: Docker Compose
 
 ## Структура проекта
@@ -46,6 +49,7 @@ backend/
 └── pyproject.toml    # Python-зависимости
 
 monitoring/prometheus.yaml
+grafana/provisioning/        # datasource Grafana
 docker-compose.yaml · Dockerfile · Caddyfile · plan.md
 ```
 
@@ -60,9 +64,12 @@ docker compose up --build
 - приложение: `http://localhost`
 - Swagger: `http://localhost/docs`
 - Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`
 - healthcheck API: `http://localhost/api/health`
 
-Prometheus открыт только на `127.0.0.1:9090`; это намеренное ограничение, чтобы не публиковать интерфейс мониторинга наружу.
+Prometheus и Grafana открыты только на `127.0.0.1`; это намеренное ограничение, чтобы не публиковать интерфейсы мониторинга наружу. Логин и пароль администратора Grafana задаются переменными `GRAFANA_ADMIN_USER` и `GRAFANA_ADMIN_PASSWORD` в `.env`.
+
+При первом запуске Compose создаёт постоянный volume `grafana_data`, а datasource Prometheus подключается через provisioning.
 
 ## Локальная разработка
 
@@ -97,5 +104,7 @@ FastAPI отдаёт прикладные HTTP-метрики на `/metrics`:
 - `http_requests_in_progress` — число выполняющихся запросов.
 
 Prometheus забирает эти данные каждые 15 секунд. Статус целей доступен в интерфейсе Prometheus: `Status → Targets`.
+
+Grafana использует Prometheus как datasource. После входа через `http://localhost:3000` метрики доступны для построения дашбордов; готовые RED-дашборды и алерты входят в следующий этап развития проекта.
 
 История изменений — в [CHANGELOG.md](CHANGELOG.md), план развития — в [plan.md](plan.md).
