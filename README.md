@@ -1,6 +1,6 @@
 # TaskFlow
 
-TaskFlow — учебное full-stack приложение для управления задачами и изучения эксплуатации сервиса. В нём есть React-интерфейс, FastAPI REST API, PostgreSQL, production-подобный Docker Compose и базовый мониторинг Prometheus.
+TaskFlow — учебное для **DevOps** full-stack приложение для управления задачами и изучения эксплуатации сервиса. В нём есть React-интерфейс, FastAPI REST API, PostgreSQL, production-подобный Docker Compose и базовый мониторинг Prometheus.
 
 ## Текущее состояние: v1.3
 
@@ -9,7 +9,7 @@ TaskFlow — учебное full-stack приложение для управл�
 ## Архитектура
 
 ```text
-Browser
+BrowserB
   ├── /        → Caddy → React production build
   └── /api/*   → Caddy → FastAPI (3 replicas) → PostgreSQL
 
